@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENo — Engineering the Future</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #060608;
+    --cyan: #00e5c8;
+    --cyan2: #00b09e;
+    --cyan-dim: rgba(0,229,200,0.08);
+    --white: #f0f4f8;
+    --muted: #5a6a7a;
+    --panel: #0d0f14;
+    --border: rgba(0,229,200,0.15);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  .cursor {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--cyan);
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: width 0.2s, height 0.2s, opacity 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,229,200,0.5);
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%);
+    transition: all 0.12s ease;
+  }
+
+  /* ─── INTRO ─── */
+  #intro {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 100; background: var(--bg);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  #intro.fade-out { opacity: 0; pointer-events: none; }
+  #intro::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 4px);
+    pointer-events: none; z-index: 1;
+  }
+
+  .corner { position: absolute; width: 40px; height: 40px; opacity: 0.3; }
+  .corner-tl { top: 32px; left: 32px; border-top: 1px solid var(--cyan); border-left: 1px solid var(--cyan); }
+  .corner-tr { top: 32px; right: 32px; border-top: 1px solid var(--cyan); border-right: 1px solid var(--cyan); }
+  .corner-bl { bottom: 32px; left: 32px; border-bottom: 1px solid var(--cyan); border-left: 1px solid var(--cyan); }
+  .corner-br { bottom: 32px; right: 32px; border-bottom: 1px solid var(--cyan); border-right: 1px solid var(--cyan); }
+  .status-bar {
+    position: absolute; top: 36px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Space Mono', monospace;
+    font-size: 9px; color: var(--cyan2);
+    letter-spacing: 0.2em; opacity: 0.5;
+    z-index: 2; white-space: nowrap;
+  }
+
+  /* ── LOGO ── */
+  .logo-group {
+    position: relative; z-index: 2;
+    display: flex; align-items: center;
+    gap: 0; user-select: none;
+  }
+
+  /* GEN uses Orbitron for a unified futuristic feel */
+  .logo-text {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(56px, 9vw, 96px);
+    letter-spacing: 0.08em;
+    color: var(--white);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(0,229,200,0.15);
+  }
+
+  /* Power O — sized to match Orbitron cap height */
+  .power-btn {
+    width: clamp(56px, 9vw, 96px);
+    height: clamp(56px, 9vw, 96px);
+    position: relative; cursor: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .power-ring {
+    width: 64%; height: 64%;
+    border-radius: 50%;
+    border: 3px solid var(--white);
+    position: absolute;
+    border-top-color: transparent;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .power-line {
+    position: absolute; width: 3px; height: 36%;
+    background: var(--white); top: 8%; left: 50%;
+    transform: translateX(-50%); border-radius: 2px;
+    transition: background 0.3s;
+  }
+  .power-btn.active .power-ring {
+    border-color: var(--cyan); border-top-color: transparent;
+    box-shadow: 0 0 20px var(--cyan), 0 0 40px rgba(0,229,200,0.3);
+  }
+  .power-btn.active .power-line { background: var(--cyan); }
+  .power-btn:hover .power-ring { border-color: var(--cyan); border-top-color: transparent; box-shadow: 0 0 12px var(--cyan); }
+  .power-btn:hover .power-line { background: var(--cyan); }
+
+  @keyframes idlePulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+  .power-ring { animation: idlePulse 2.5s ease-in-out infinite; }
+  .power-btn.active .power-ring { animation: none; }
+
+  .tagline {
+    margin-top: 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(9px, 1.2vw, 11px);
+    letter-spacing: 0.35em; color: var(--muted);
+    text-transform: uppercase; z-index: 2;
+    position: relative; transition: color 0.5s;
+  }
+  .click-hint {
+    margin-top: 48px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px; color: var(--muted);
+    letter-spacing: 0.2em; z-index: 2;
+    position: relative; opacity: 0.6;
+    animation: idlePulse 2s ease-in-out infinite;
+  }
+
+  /* ─── CIRCUIT OVERLAY ─── */
+  #circuit-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    pointer-events: none; opacity: 0; transition: opacity 0.3s;
+  }
+  #circuit-overlay.active { opacity: 1; }
+  #circuit-svg { width: 100%; height: 100%; }
+  .circuit-trace {
+    fill: none; stroke: var(--cyan); stroke-width: 1.5;
+    stroke-dasharray: 2000; stroke-dashoffset: 2000;
+    opacity: 0.7; filter: drop-shadow(0 0 4px var(--cyan));
+  }
+  .circuit-trace-2 {
+    fill: none; stroke: var(--cyan); stroke-width: 0.8;
+    stroke-dasharray: 2000; stroke-dashoffset: 2000; opacity: 0.3;
+  }
+  .circuit-node {
+    fill: var(--bg); stroke: var(--cyan); stroke-width: 1.5;
+    opacity: 0; filter: drop-shadow(0 0 6px var(--cyan));
+  }
+  .spark {
+    fill: var(--cyan);
+    filter: drop-shadow(0 0 6px var(--cyan)) drop-shadow(0 0 12px var(--cyan));
+  }
+  #flash {
+    position: fixed; inset: 0; background: var(--cyan);
+    z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.1s;
+  }
+
+  /* ─── MAIN SITE ─── */
+  #main-site {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  #main-site.visible { opacity: 1; transform: translateY(0); }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    padding: 20px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(6,6,8,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900; font-size: 20px;
+    letter-spacing: 0.08em;
+    display: flex; align-items: center; gap: 0; color: var(--white);
+  }
+  .nav-logo .o-wrap {
+    position: relative; display: inline-flex;
+    align-items: center; justify-content: center;
+    width: 22px; height: 22px;
+  }
+  .nav-logo .o-ring {
+    width: 13px; height: 13px; border-radius: 50%;
+    border: 2px solid var(--cyan);
+    border-top-color: transparent; position: absolute;
+  }
+  .nav-logo .o-line {
+    width: 2px; height: 7px; background: var(--cyan);
+    position: absolute; top: 1px; border-radius: 2px;
+  }
+
+  .nav-links { display: flex; gap: 40px; list-style: none; }
+  .nav-links a {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.15em; color: var(--muted);
+    text-decoration: none; text-transform: uppercase; transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-cta {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; color: var(--bg); background: var(--cyan);
+    border: none; padding: 10px 22px; cursor: none;
+    text-decoration: none; transition: opacity 0.2s, box-shadow 0.2s;
+  }
+  .nav-cta:hover { opacity: 0.85; box-shadow: 0 0 20px rgba(0,229,200,0.4); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,200,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,200,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+  }
+  .hero::after {
+    content: '';
+    position: absolute; top: 50%; left: 30%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(0,229,200,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative; z-index: 1;
+    max-width: 720px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid var(--border); padding: 6px 14px;
+    margin-bottom: 32px;
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; color: var(--cyan2); text-transform: uppercase;
+  }
+  .hero-badge-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--cyan); animation: idlePulse 1.5s infinite;
+  }
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: clamp(38px, 5.5vw, 72px);
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: normal; color: var(--cyan); position: relative;
+  }
+  .hero h1 em::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; right: 0;
+    height: 2px; background: var(--cyan); opacity: 0.4;
+  }
+  .hero-desc {
+    font-size: 16px; color: var(--muted);
+    line-height: 1.7; max-width: 520px;
+    margin-bottom: 44px; font-weight: 300;
+  }
+  .hero-actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+  .btn-primary {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; background: var(--cyan);
+    color: var(--bg); border: none; padding: 14px 32px;
+    cursor: none; text-decoration: none; text-transform: uppercase;
+    transition: box-shadow 0.2s, opacity 0.2s; font-weight: 700;
+  }
+  .btn-primary:hover { box-shadow: 0 0 30px rgba(0,229,200,0.5); }
+  .btn-ghost {
+    font-family: 'Space Mono', monospace; font-size: 11px;
+    letter-spacing: 0.1em; color: var(--white);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 14px 32px; cursor: none; text-decoration: none;
+    text-transform: uppercase; transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ═══════════════════════════════════════
+     HERO RIGHT — HOLOGRAPHIC TECH ORB
+  ═══════════════════════════════════════ */
+  .hero-visual {
+    position: absolute;
+    right: 60px; top: 50%;
+    transform: translateY(-50%);
+    width: 420px; height: 420px;
+    z-index: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Subtle ambient glow behind orb */
+  .orb-glow {
+    position: absolute; inset: -40px;
+    background: radial-gradient(ellipse, rgba(0,229,200,0.08) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* Outer dashed ring — slow rotate */
+  @keyframes spinCW  { from{transform:rotate(0deg)}   to{transform:rotate(360deg)} }
+  @keyframes spinCCW { from{transform:rotate(0deg)}   to{transform:rotate(-360deg)} }
+  @keyframes spinSlow{ from{transform:rotate(0deg)}   to{transform:rotate(360deg)} }
+
+  .ring {
+    position: absolute; border-radius: 50%;
+    border: 1px solid transparent; box-sizing: border-box;
+  }
+  .ring-1 {
+    width: 380px; height: 380px;
+    border: 1px dashed rgba(0,229,200,0.25);
+    animation: spinCW 28s linear infinite;
+  }
+  .ring-2 {
+    width: 310px; height: 310px;
+    border: 1px solid rgba(0,229,200,0.15);
+    border-top-color: var(--cyan);
+    border-right-color: rgba(0,229,200,0.5);
+    animation: spinCCW 14s linear infinite;
+    box-shadow: 0 0 20px rgba(0,229,200,0.05);
+  }
+  .ring-3 {
+    width: 240px; height: 240px;
+    border: 1.5px dashed rgba(0,229,200,0.3);
+    border-bottom-color: var(--cyan);
+    animation: spinCW 9s linear infinite;
+  }
+  .ring-4 {
+    width: 170px; height: 170px;
+    border: 1px solid rgba(0,229,200,0.2);
+    border-left-color: var(--cyan);
+    animation: spinCCW 6s linear infinite;
+  }
+
+  /* Core glowing dot */
+  .orb-core {
+    width: 68px; height: 68px;
+    border-radius: 50%; position: relative;
+    background: radial-gradient(circle, rgba(0,229,200,0.9) 0%, rgba(0,176,158,0.4) 40%, transparent 70%);
+    box-shadow:
+      0 0 20px rgba(0,229,200,0.8),
+      0 0 50px rgba(0,229,200,0.4),
+      0 0 100px rgba(0,229,200,0.15);
+    z-index: 5;
+    animation: corePulse 3s ease-in-out infinite;
+  }
+  @keyframes corePulse {
+    0%,100% { box-shadow: 0 0 20px rgba(0,229,200,0.8), 0 0 50px rgba(0,229,200,0.4), 0 0 100px rgba(0,229,200,0.15); transform: scale(1); }
+    50%      { box-shadow: 0 0 30px rgba(0,229,200,1),   0 0 70px rgba(0,229,200,0.6), 0 0 140px rgba(0,229,200,0.25); transform: scale(1.08); }
+  }
+
+  /* Orbiting nodes — positioned on ring-2 */
+  .orbit-node {
+    position: absolute;
+    width: 310px; height: 310px;
+    animation: spinCCW 14s linear infinite; /* counter-spins with ring-2 to stay stationary */
+  }
+  /* Each child dot sits at top-center of its orbit-node div */
+  .node-dot {
+    position: absolute;
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 10px var(--cyan), 0 0 20px rgba(0,229,200,0.4);
+  }
+  .orbit-node-1 { transform: rotate(0deg);   animation-delay: 0s;      animation: none; transform: rotate(0deg);}
+  .orbit-node-2 { transform: rotate(120deg); animation: none; }
+  .orbit-node-3 { transform: rotate(240deg); animation: none; }
+
+  /* Since ring-2 spins CCW 14s, orbit nodes need to spin CW 14s to stay fixed */
+  .orbit-nodes-wrapper {
+    position: absolute;
+    width: 310px; height: 310px;
+    animation: spinCW 14s linear infinite;
+  }
+
+  /* Data label cards floating off the dots */
+  .data-card {
+    position: absolute;
+    background: rgba(13,15,20,0.92);
+    border: 1px solid rgba(0,229,200,0.3);
+    padding: 10px 16px;
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .data-card-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px; font-weight: 700;
+    color: var(--cyan); line-height: 1;
+    margin-bottom: 3px;
+  }
+  .data-card-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px; letter-spacing: 0.2em;
+    color: var(--muted); text-transform: uppercase;
+  }
+
+  /* Position data cards relative to the visual container */
+  .card-ai    { top: 22px;  right: -30px; }
+  .card-scale { bottom: 22px; right: -50px; }
+  .card-time  { top: 50%; left: -80px; transform: translateY(-50%); }
+
+  /* Connector lines from dot to card */
+  .connector {
+    position: absolute;
+    background: rgba(0,229,200,0.3);
+    transform-origin: left center;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  /* Tick marks on ring-1 */
+  .ticks {
+    position: absolute;
+    width: 380px; height: 380px;
+    animation: spinCW 28s linear infinite;
+  }
+  .tick {
+    position: absolute;
+    width: 6px; height: 1px;
+    background: rgba(0,229,200,0.4);
+    top: 50%; left: 50%;
+    transform-origin: 0 0;
+  }
+
+  /* HUD corner brackets around the visual */
+  .hud-corner {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: rgba(0,229,200,0.4);
+    border-style: solid;
+  }
+  .hud-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+  .hud-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+  .hud-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+  .hud-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+  /* Scan line animation on the orb */
+  .scan-line {
+    position: absolute;
+    width: 380px; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,229,200,0.4), transparent);
+    left: 50%; transform: translateX(-50%);
+    animation: scanMove 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes scanMove {
+    0%  { top: calc(50% - 190px); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100%{ top: calc(50% + 190px); opacity: 0; }
+  }
+
+  /* Floating particles */
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: var(--cyan);
+    opacity: 0;
+    animation: floatParticle var(--dur, 5s) var(--delay, 0s) ease-in-out infinite;
+  }
+  @keyframes floatParticle {
+    0%   { opacity: 0; transform: translate(0, 0); }
+    20%  { opacity: 0.8; }
+    80%  { opacity: 0.4; }
+    100% { opacity: 0; transform: translate(var(--dx, 30px), var(--dy, -60px)); }
+  }
+
+  /* SERVICES */
+  .section { padding: 120px 48px; }
+  .section-header {
+    margin-bottom: 72px;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 32px; flex-wrap: wrap;
+  }
+  .section-tag {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    letter-spacing: 0.25em; color: var(--cyan);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700; line-height: 1.1; letter-spacing: 0.02em;
+  }
+  .section-line {
+    width: 80px; height: 1px; background: var(--cyan);
+    opacity: 0.4; margin-bottom: 32px; flex-shrink: 0;
+  }
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2px;
+  }
+  .service-card {
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 40px 36px; position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .service-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at top left, rgba(0,229,200,0.06), transparent 70%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .service-card:hover { border-color: rgba(0,229,200,0.4); }
+  .service-card:hover::before { opacity: 1; }
+  .service-icon {
+    width: 44px; height: 44px; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 24px; font-size: 18px;
+  }
+  .service-num {
+    position: absolute; top: 32px; right: 32px;
+    font-family: 'Orbitron', monospace; font-size: 40px; font-weight: 900;
+    color: rgba(0,229,200,0.05); line-height: 1;
+  }
+  .service-name {
+    font-family: 'Rajdhani', sans-serif; font-size: 22px;
+    font-weight: 600; margin-bottom: 12px; color: var(--white);
+  }
+  .service-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+  .service-tag {
+    display: inline-block; margin-top: 20px;
+    font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: 0.15em; color: var(--cyan2);
+    border: 1px solid rgba(0,176,158,0.3); padding: 4px 10px; text-transform: uppercase;
+  }
+
+  /* ABOUT */
+  .about-section {
+    padding: 120px 48px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center; border-top: 1px solid var(--border);
+  }
+  @media (max-width: 1024px) {
+    .hero-visual { display: none; }
+  }
+  @media (max-width: 768px) {
+    .about-section { grid-template-columns: 1fr; gap: 48px; }
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    .hero, .section { padding-left: 24px; padding-right: 24px; }
+    .about-section { padding: 80px 24px; }
+  }
+
+  .about-text p {
+    font-size: 15px; color: var(--muted);
+    line-height: 1.8; margin-bottom: 16px; font-weight: 300;
+  }
+  .about-text p strong { color: var(--white); font-weight: 500; }
+
+  .terminal {
+    background: #070a0e; border: 1px solid var(--border);
+    font-family: 'Space Mono', monospace; font-size: 12px;
+    padding: 0; overflow: hidden;
+  }
+  .terminal-bar {
+    background: #0d1117; border-bottom: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; gap: 6px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-r { background: #3d1a1a; }
+  .dot-y { background: #3d3400; }
+  .dot-g { background: #0f3d1a; }
+  .terminal-body { padding: 20px 20px; line-height: 2; }
+  .t-line { display: block; }
+  .t-prompt { color: var(--cyan); }
+  .t-cmd { color: var(--white); }
+  .t-out { color: #3a5a6e; }
+  .t-success { color: var(--cyan2); }
+  .t-cursor {
+    display: inline-block; width: 8px; height: 14px;
+    background: var(--cyan); animation: blink 1s step-end infinite; vertical-align: middle;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  .cta-section {
+    padding: 120px 48px; text-align: center;
+    border-top: 1px solid var(--border); position: relative; overflow: hidden;
+  }
+  .cta-section::before {
+    content: ''; position: absolute; bottom: -100px; left: 50%;
+    transform: translateX(-50%); width: 500px; height: 300px;
+    background: radial-gradient(ellipse, rgba(0,229,200,0.08) 0%, transparent 70%);
+  }
+  .cta-section h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(32px, 5vw, 60px); font-weight: 900;
+    letter-spacing: 0.02em; margin-bottom: 16px; position: relative;
+  }
+  .cta-section p {
+    color: var(--muted); margin-bottom: 48px; font-size: 15px;
+    font-weight: 300; position: relative;
+  }
+  .cta-section .btn-primary { position: relative; }
+
+  footer {
+    padding: 40px 48px; border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .footer-logo {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900; font-size: 16px; letter-spacing: 0.08em; color: var(--white);
+  }
+  footer p {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: var(--muted); letter-spacing: 0.1em;
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.in-view { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div id="flash"></div>
+
+<!-- CIRCUIT OVERLAY -->
+<div id="circuit-overlay">
+  <svg id="circuit-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+    <path id="t1" class="circuit-trace" d="M720,450 L720,350 L620,350 L620,280 L480,280 L480,200 L320,200 L320,160"/>
+    <path id="t1b" class="circuit-trace-2" d="M620,350 L520,350 L520,420 L440,420"/>
+    <path id="t1c" class="circuit-trace-2" d="M480,280 L480,220 L380,220 L380,160 L300,160"/>
+    <path id="t2" class="circuit-trace" d="M720,450 L720,320 L840,320 L840,240 L960,240 L960,180 L1100,180 L1100,120"/>
+    <path id="t2b" class="circuit-trace-2" d="M840,320 L920,320 L920,260 L1000,260"/>
+    <path id="t2c" class="circuit-trace-2" d="M960,240 L1040,240 L1040,140 L1180,140"/>
+    <path id="t3" class="circuit-trace" d="M720,450 L880,450 L880,380 L1020,380 L1020,440 L1180,440 L1180,360 L1340,360"/>
+    <path id="t3b" class="circuit-trace-2" d="M1020,380 L1020,300 L1140,300 L1140,200"/>
+    <path id="t3c" class="circuit-trace-2" d="M1180,440 L1280,440 L1280,520 L1400,520"/>
+    <path id="t4" class="circuit-trace" d="M720,450 L720,580 L860,580 L860,660 L1000,660 L1000,740 L1120,740 L1120,800"/>
+    <path id="t4b" class="circuit-trace-2" d="M860,580 L940,580 L940,640 L1060,640"/>
+    <path id="t4c" class="circuit-trace-2" d="M1000,660 L1100,660 L1100,580 L1200,580"/>
+    <path id="t5" class="circuit-trace" d="M720,450 L720,600 L580,600 L580,700 L440,700 L440,780 L280,780 L280,860"/>
+    <path id="t5b" class="circuit-trace-2" d="M580,600 L500,600 L500,680 L380,680"/>
+    <path id="t5c" class="circuit-trace-2" d="M440,700 L360,700 L360,760 L240,760"/>
+    <path id="t6" class="circuit-trace" d="M720,450 L560,450 L560,380 L400,380 L400,300 L240,300 L240,220 L100,220"/>
+    <path id="t6b" class="circuit-trace-2" d="M400,380 L400,460 L280,460 L280,540"/>
+    <path id="t6c" class="circuit-trace-2" d="M240,300 L160,300 L160,400 L60,400"/>
+    <circle id="n1" class="circuit-node" cx="720" cy="350" r="4"/>
+    <circle id="n2" class="circuit-node" cx="620" cy="350" r="3"/>
+    <circle id="n3" class="circuit-node" cx="480" cy="280" r="4"/>
+    <circle id="n4" class="circuit-node" cx="840" cy="320" r="4"/>
+    <circle id="n5" class="circuit-node" cx="960" cy="240" r="3"/>
+    <circle id="n6" class="circuit-node" cx="880" cy="450" r="4"/>
+    <circle id="n7" class="circuit-node" cx="1020" cy="380" r="3"/>
+    <circle id="n8" class="circuit-node" cx="860" cy="580" r="4"/>
+    <circle id="n9" class="circuit-node" cx="580" cy="600" r="4"/>
+    <circle id="n10" class="circuit-node" cx="560" cy="450" r="4"/>
+    <circle id="n11" class="circuit-node" cx="400" cy="380" r="4"/>
+    <circle id="n12" class="circuit-node" cx="720" cy="320" r="3"/>
+    <circle id="n13" class="circuit-node" cx="1000" cy="660" r="3"/>
+    <circle id="n14" class="circuit-node" cx="440" cy="700" r="3"/>
+    <circle id="n15" class="circuit-node" cx="1180" cy="440" r="3"/>
+    <circle id="spark1" class="spark" cx="0" cy="0" r="3" opacity="0"/>
+    <circle id="spark2" class="spark" cx="0" cy="0" r="2.5" opacity="0"/>
+    <circle id="spark3" class="spark" cx="0" cy="0" r="3" opacity="0"/>
+    <circle id="spark4" class="spark" cx="0" cy="0" r="2.5" opacity="0"/>
+    <circle id="spark5" class="spark" cx="0" cy="0" r="3" opacity="0"/>
+    <circle id="spark6" class="spark" cx="0" cy="0" r="2.5" opacity="0"/>
+  </svg>
+</div>
+
+<!-- INTRO -->
+<div id="intro">
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+  <div class="status-bar">SYS://INIT &nbsp;|&nbsp; AWAITING POWER &nbsp;|&nbsp; GENo v1.0</div>
+  <div class="logo-group">
+    <span class="logo-text">GEN</span>
+    <div class="power-btn" id="powerBtn" title="Power on">
+      <div class="power-ring"></div>
+      <div class="power-line"></div>
+    </div>
+  </div>
+  <p class="tagline">Engineering the Next Generation</p>
+  <p class="click-hint">[ click to initialize ]</p>
+</div>
+
+<!-- MAIN SITE -->
+<div id="main-site">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">
+      GEN
+      <div class="o-wrap">
+        <div class="o-ring"></div>
+        <div class="o-line"></div>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#services">Services</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Get in Touch</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Available for new projects
+      </div>
+      <h1>
+        We build<br>
+        <em>intelligent</em><br>
+        software.
+      </h1>
+      <p class="hero-desc">
+        GENo is a next-generation software studio crafting AI-powered products, scalable web platforms, and digital experiences that move faster than the market.
+      </p>
+      <div class="hero-actions">
+        <a href="#services" class="btn-primary">Our Services</a>
+        <a href="#about" class="btn-ghost">Who We Are</a>
+      </div>
+    </div>
+
+    <!-- ═══ HOLOGRAPHIC ORB ═══ -->
+    <div class="hero-visual">
+      <div class="orb-glow"></div>
+
+      <!-- HUD corners -->
+      <div class="hud-corner hud-tl"></div>
+      <div class="hud-corner hud-tr"></div>
+      <div class="hud-corner hud-bl"></div>
+      <div class="hud-corner hud-br"></div>
+
+      <!-- Scan line -->
+      <div class="scan-line"></div>
+
+      <!-- Tick marks on outer ring -->
+      <div class="ticks" id="ticks"></div>
+
+      <!-- Rings -->
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+      <div class="ring ring-4"></div>
+
+      <!-- Orbiting node wrapper (counter-spins ring-2 to hold nodes fixed) -->
+      <div class="orbit-nodes-wrapper">
+        <!-- Node 1: top — AI -->
+        <div style="position:absolute;width:310px;height:310px;transform:rotate(0deg);">
+          <div class="node-dot" style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);"></div>
+        </div>
+        <!-- Node 2: bottom-right — 24h -->
+        <div style="position:absolute;width:310px;height:310px;transform:rotate(120deg);">
+          <div class="node-dot" style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);"></div>
+        </div>
+        <!-- Node 3: bottom-left — ∞ -->
+        <div style="position:absolute;width:310px;height:310px;transform:rotate(240deg);">
+          <div class="node-dot" style="position:absolute;top:-6px;left:50%;transform:translateX(-50%);"></div>
+        </div>
+      </div>
+
+      <!-- Core -->
+      <div class="orb-core"></div>
+
+      <!-- Floating data cards -->
+      <div class="data-card card-ai">
+        <div class="data-card-val">AI</div>
+        <div class="data-card-label">First Approach</div>
+      </div>
+      <div class="data-card card-scale">
+        <div class="data-card-val">∞</div>
+        <div class="data-card-label">Scale Ready</div>
+      </div>
+      <div class="data-card card-time">
+        <div class="data-card-val">24H</div>
+        <div class="data-card-label">Response Time</div>
+      </div>
+
+      <!-- Particles -->
+      <div class="particle" style="--dur:6s;--delay:0s;--dx:40px;--dy:-80px;left:48%;top:50%;"></div>
+      <div class="particle" style="--dur:8s;--delay:1s;--dx:-50px;--dy:-70px;left:55%;top:45%;"></div>
+      <div class="particle" style="--dur:7s;--delay:2s;--dx:30px;--dy:-90px;left:44%;top:55%;"></div>
+      <div class="particle" style="--dur:5s;--delay:0.5s;--dx:-35px;--dy:-60px;left:52%;top:48%;"></div>
+      <div class="particle" style="--dur:9s;--delay:3s;--dx:60px;--dy:-50px;left:46%;top:52%;"></div>
+      <div class="particle" style="--dur:6.5s;--delay:1.5s;--dx:-20px;--dy:-100px;left:50%;top:50%;"></div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section" id="services">
+    <div class="section-header">
+      <div>
+        <p class="section-tag">// What we build</p>
+        <h2 class="section-title">Our Services</h2>
+      </div>
+      <div class="section-line"></div>
+    </div>
+    <div class="services-grid">
+      <div class="service-card reveal">
+        <div class="service-num">01</div>
+        <div class="service-icon">⚡</div>
+        <div class="service-name">AI Integration</div>
+        <p class="service-desc">We embed intelligent systems into your existing product — from LLM-powered features to custom ML pipelines that automate what used to take hours.</p>
+        <span class="service-tag">Machine Learning</span>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">02</div>
+        <div class="service-icon">◈</div>
+        <div class="service-name">Web Platform Dev</div>
+        <p class="service-desc">Full-stack web applications built for speed, security, and scale. From landing pages to complex SaaS dashboards — production-grade from day one.</p>
+        <span class="service-tag">Full Stack</span>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">03</div>
+        <div class="service-icon">◎</div>
+        <div class="service-name">UI/UX Engineering</div>
+        <p class="service-desc">Interfaces that make users stop and stare. We design and build interactive experiences that convert visitors into advocates for your product.</p>
+        <span class="service-tag">Design Systems</span>
+      </div>
+      <div class="service-card reveal">
+        <div class="service-num">04</div>
+        <div class="service-icon">▣</div>
+        <div class="service-name">Startup MVP Studio</div>
+        <p class="service-desc">Turn your idea into a working product in weeks. We partner with founders from zero to launch — fast, lean, and built to grow.</p>
+        <span class="service-tag">Rapid Build</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about-section" id="about">
+    <div class="about-text reveal">
+      <p class="section-tag">// Who we are</p>
+      <h2 class="section-title" style="margin-bottom:28px;">Built by<br>engineers,<br><em style="color:var(--cyan);font-style:normal;">for founders.</em></h2>
+      <p>GENo started with a simple conviction: <strong>great software should be accessible to every ambitious idea.</strong> We're a lean team of engineers and designers who care deeply about craft.</p>
+      <p>Every project we take on gets our full attention — no outsourcing, no templates, no shortcuts. Just precise engineering and sharp design thinking applied to your specific problem.</p>
+      <p>We're based in Sri Lanka and building for the world.</p>
+      <br>
+      <a href="#contact" class="btn-primary" style="display:inline-block;">Start a Project</a>
+    </div>
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+      </div>
+      <div class="terminal-body">
+        <span class="t-line"><span class="t-prompt">GENo ~ $</span> <span class="t-cmd">init project</span></span>
+        <span class="t-line t-out">→ Analyzing requirements...</span>
+        <span class="t-line t-success">✓ Stack selected: Next.js + Python AI</span>
+        <span class="t-line t-out">&nbsp;</span>
+        <span class="t-line"><span class="t-prompt">GENo ~ $</span> <span class="t-cmd">build --fast --quality=max</span></span>
+        <span class="t-line t-out">→ Designing architecture...</span>
+        <span class="t-line t-out">→ Engineering components...</span>
+        <span class="t-line t-success">✓ MVP ready in 3 weeks</span>
+        <span class="t-line t-out">&nbsp;</span>
+        <span class="t-line"><span class="t-prompt">GENo ~ $</span> <span class="t-cmd">deploy</span></span>
+        <span class="t-line t-success">✓ Live. Scale: unlimited.</span>
+        <span class="t-line"><span class="t-prompt">GENo ~ $</span> <span class="t-cursor"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="contact">
+    <div class="reveal">
+      <p class="section-tag" style="margin-bottom:16px;">// Ready?</p>
+      <h2>Let's build<br>something <em style="color:var(--cyan);font-style:normal;">extraordinary.</em></h2>
+      <p>Tell us about your project. We'll respond within 24 hours.</p>
+      <a href="mailto:hello@geno.dev" class="btn-primary">hello@geno.dev</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">GEN<span style="color:var(--cyan)">O</span></div>
+    <p>© 2025 GENo. All rights reserved.</p>
+    <p>Engineering the Next Generation</p>
+  </footer>
+
+</div>
+
+<script>
+  // ── CURSOR ──
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animCursor() {
+    cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+    rx += (mx - rx) * 0.15; ry += (my - ry) * 0.15;
+    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+    requestAnimationFrame(animCursor);
+  }
+  animCursor();
+  document.querySelectorAll('a, button, .power-btn').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '16px'; cursor.style.height = '16px';
+      ring.style.width = '48px'; ring.style.height = '48px';
+      ring.style.borderColor = 'rgba(0,229,200,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px'; cursor.style.height = '10px';
+      ring.style.width = '36px'; ring.style.height = '36px';
+      ring.style.borderColor = 'rgba(0,229,200,0.5)';
+    });
+  });
+
+  // ── TICK MARKS ──
+  const ticksEl = document.getElementById('ticks');
+  for (let i = 0; i < 36; i++) {
+    const t = document.createElement('div');
+    t.className = 'tick';
+    const angle = i * 10;
+    const rad = (angle - 90) * Math.PI / 180;
+    const r = 190;
+    const cx = 190, cy = 190;
+    const x = cx + r * Math.cos(rad);
+    const y = cy + r * Math.sin(rad);
+    const len = i % 3 === 0 ? 10 : 5;
+    t.style.cssText = `
+      position:absolute;
+      width:${len}px; height:1px;
+      background:rgba(0,229,200,${i%3===0?0.6:0.25});
+      left:${x}px; top:${y}px;
+      transform:rotate(${angle}deg);
+      transform-origin:0 50%;
+    `;
+    ticksEl.appendChild(t);
+  }
+
+  // ── CIRCUIT ANIMATION ──
+  const traces = ['t1','t2','t3','t4','t5','t6'];
+  const traceSubs = ['t1b','t1c','t2b','t2c','t3b','t3c','t4b','t4c','t5b','t5c','t6b','t6c'];
+  const nodes = Array.from({length:15},(_,i)=>`n${i+1}`);
+
+  function animatePath(id, delay, duration) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let len;
+    try { len = el.getTotalLength(); } catch(e) { len = 1000; }
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    el.style.transition = `stroke-dashoffset ${duration}ms ease ${delay}ms`;
+    setTimeout(() => { el.style.strokeDashoffset = '0'; }, 20);
+  }
+
+  function animateSpark(sparkId, pathId, delay, duration) {
+    const spark = document.getElementById(sparkId);
+    const path = document.getElementById(pathId);
+    if (!spark || !path) return;
+    setTimeout(() => {
+      let len;
+      try { len = path.getTotalLength(); } catch(e) { return; }
+      spark.setAttribute('opacity','1');
+      const start = performance.now();
+      function frame(now) {
+        const t = Math.min((now - start) / duration, 1);
+        try {
+          const pt = path.getPointAtLength(t * len);
+          spark.setAttribute('cx', pt.x);
+          spark.setAttribute('cy', pt.y);
+        } catch(e) {}
+        if (t < 1) requestAnimationFrame(frame);
+        else spark.setAttribute('opacity','0');
+      }
+      requestAnimationFrame(frame);
+    }, delay);
+  }
+
+  function runCircuitAnimation() {
+    const overlay = document.getElementById('circuit-overlay');
+    overlay.classList.add('active');
+    traces.forEach((id, i) => animatePath(id, i * 120, 700));
+    traceSubs.forEach((id, i) => animatePath(id, 200 + i * 80, 500));
+    nodes.forEach((id, i) => {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.style.opacity = '1';
+      }, 300 + i * 100);
+    });
+    animateSpark('spark1','t1', 100, 800);
+    animateSpark('spark2','t2', 200, 750);
+    animateSpark('spark3','t3', 150, 850);
+    animateSpark('spark4','t4', 250, 800);
+    animateSpark('spark5','t5', 180, 820);
+    animateSpark('spark6','t6', 220, 780);
+    setTimeout(() => {
+      const flash = document.getElementById('flash');
+      flash.style.opacity = '0.6';
+      setTimeout(() => { flash.style.opacity = '0'; }, 120);
+    }, 1600);
+    setTimeout(() => {
+      overlay.style.transition = 'opacity 0.4s';
+      overlay.style.opacity = '0';
+      document.getElementById('intro').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('intro').style.display = 'none';
+        overlay.style.display = 'none';
+        const site = document.getElementById('main-site');
+        site.classList.add('visible');
+        initScrollReveal();
+      }, 500);
+    }, 2000);
+  }
+
+  let powered = false;
+  document.getElementById('powerBtn').addEventListener('click', function() {
+    if (powered) return;
+    powered = true;
+    this.classList.add('active');
+    document.querySelector('.click-hint').style.display = 'none';
+    setTimeout(runCircuitAnimation, 300);
+  });
+
+  function initScrollReveal() {
+    const revealEls = document.querySelectorAll('.reveal');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => obs.observe(el));
+  }
+</script>
+</body>
+</html>
